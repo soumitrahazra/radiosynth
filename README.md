@@ -4,6 +4,8 @@
 
 *Author: Soumitra Hazra · Licence: GPL-3.0-or-later · Version 2.2.0 (second version of the package)*
 
+[![DOI](https://zenodo.org/badge/1444487678.svg)](https://doi.org/10.5281/zenodo.23924217)
+
 radiosynth turns the output of a magnetohydrodynamic (MHD) simulation of a solar or
 stellar corona into the radio images, spectra and polarisation maps that a radio telescope
 would see. For every pixel it follows the radio ray from the observer through the model
