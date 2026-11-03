@@ -1,0 +1,40 @@
+\documentclass[11pt,a4paper,oneside]{book}
+\input{preamble}
+\hypersetup{pdftitle={radiosynth User Manual: Synthetic Radio Imaging of MHD Solar-Stellar Coronal Model Output and Comparison with Observations},
+  pdfsubject={User guide and theory}}
+\begin{document}
+\frontmatter
+\begin{titlepage}
+\centering
+\vspace*{3cm}
+{\Huge\bfseries\color{accent} radiosynth\par}
+\vspace{0.25cm}
+{\huge\itshape From MHD to MHz\par}
+\vspace{0.6cm}
+{\LARGE Synthetic Radio Imaging of MHD Solar--Stellar\\[2pt] Coronal Model Output and Comparison with Observations\par}
+\vspace{0.4cm}
+{\large A standalone Python implementation of the BATS-R-US refractive radio ray-tracing tool,\\ with thermal free--free, gyroresonance and gyrosynchrotron emission and circular polarisation,\\ for BATS-R-US, PLUTO and other MHD codes --- the Sun and other stars\par}
+\vspace{1.5cm}
+\includegraphics[width=0.92\textwidth]{fig/ray_paths.png}\par
+\vspace{1.2cm}
+{\Large User Manual: User Guide \quad$\cdot$\quad Theory\par}\vspace{0.3cm}{\normalsize The line-by-line description of the code is a separate document,\\ \code{radiosynth\_code\_reference.pdf}.\par}
+\vfill
+{\Large Soumitra Hazra\par}
+\vspace{0.3cm}
+{\large Second version (2.2.0) \quad---\quad November 2026\par}
+\vspace{0.2cm}
+{\small Free software under the GNU General Public License, version 3 or later\par}
+\vspace{0.4cm}
+{\small Algorithm after Benkevitch et al.\ (2010, ApJ 725, 447) and Moschou et al.\ (2018, ApJ 867, 51)\par}
+\end{titlepage}
+
+\tableofcontents
+
+\mainmatter
+\part{User Guide}
+\input{userguide}
+\part{Theory and Algorithm}
+\input{theory}
+\appendix
+\input{appendix}
+\end{document}

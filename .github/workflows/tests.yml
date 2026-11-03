@@ -1,0 +1,31 @@
+name: tests
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.9", "3.12"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Install radiosynth
+        run: |
+          python -m pip install --upgrade pip
+          python -m pip install -e .
+      - name: Build the fast gyrosynchrotron codes (GPL-3.0, not bundled)
+        run: python -m radiosynth.gyrosynchrotron.library --build
+      - name: Run the tests
+        run: |
+          set -e
+          for t in tests/*.py; do
+            echo "=== $t"
+            python "$t"
+          done

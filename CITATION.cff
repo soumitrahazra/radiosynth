@@ -1,0 +1,59 @@
+cff-version: 1.2.0
+message: >-
+  If you use radiosynth in your research, please cite it as below, together with
+  the papers on which its algorithms are based (Benkevitch et al. 2010;
+  Moschou et al. 2018; and, for gyrosynchrotron emission, Kuznetsov & Fleishman 2021).
+title: "radiosynth: From MHD to MHz - synthetic radio images of MHD models of the Sun and stars"
+type: software
+authors:
+  - family-names: Hazra
+    given-names: Soumitra
+version: 2.2.0
+license: GPL-3.0-or-later
+keywords:
+  - solar corona
+  - radio emission
+  - MHD
+  - ray tracing
+  - gyroresonance
+  - gyrosynchrotron
+references:
+  - type: article
+    authors:
+      - family-names: Benkevitch
+        given-names: L.
+      - family-names: Sokolov
+        given-names: I.
+      - family-names: Oberoi
+        given-names: D.
+      - family-names: Zurbuchen
+        given-names: T.
+    title: "Algorithm for computation of radio images of the Sun"
+    journal: "The Astrophysical Journal"
+    volume: 725
+    start: 447
+    year: 2010
+  - type: article
+    authors:
+      - family-names: Moschou
+        given-names: S.-P.
+      - family-names: Sokolov
+        given-names: I.
+      - family-names: Cohen
+        given-names: O.
+    title: "Synthetic radio imaging for quiescent and CME-flare scenarios"
+    journal: "The Astrophysical Journal"
+    volume: 867
+    start: 51
+    year: 2018
+  - type: article
+    authors:
+      - family-names: Kuznetsov
+        given-names: A. A.
+      - family-names: Fleishman
+        given-names: G. D.
+    title: "Ultimate fast gyrosynchrotron codes"
+    journal: "The Astrophysical Journal"
+    volume: 922
+    start: 103
+    year: 2021

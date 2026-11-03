@@ -1,0 +1,23 @@
+__pycache__/
+*.py[cod]
+*.egg-info/
+build/
+dist/
+.ipynb_checkpoints/
+.DS_Store
+
+# test and example output
+tests/output/
+examples/output/
+
+# LaTeX build files (the PDFs in doc/ are kept)
+doc/*.aux
+doc/*.log
+doc/*.out
+doc/*.toc
+doc/*.lof
+doc/*.lot
+doc/*.synctex.gz
+doc/*.fls
+doc/*.fdb_latexmk
+doc/src/

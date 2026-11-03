@@ -1,0 +1,35 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "radiosynth"
+version = "2.2.0"
+description = "From MHD to MHz: synthetic radio images of MHD models of the Sun and stars (refraction, free-free, gyroresonance, gyrosynchrotron)"
+readme = "README.md"
+license = {text = "GPL-3.0-or-later"}
+authors = [{name = "Soumitra Hazra"}]
+requires-python = ">=3.8"
+dependencies = ["numpy", "scipy", "matplotlib"]
+keywords = ["solar corona", "radio emission", "MHD", "ray tracing", "bremsstrahlung",
+            "gyroresonance", "gyrosynchrotron", "BATS-R-US", "PLUTO", "stellar winds"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: GNU General Public License v3 or later (GPLv3+)",
+    "Operating System :: OS Independent",
+    "Intended Audience :: Science/Research",
+    "Topic :: Scientific/Engineering :: Astronomy",
+    "Topic :: Scientific/Engineering :: Physics",
+]
+
+[project.optional-dependencies]
+fits = ["astropy"]
+sun = ["sunpy"]
+tecplot = ["pytecplot"]
+all = ["astropy", "sunpy"]
+
+[project.scripts]
+radiosynth = "radiosynth.common.cli:main"
+
+[tool.setuptools.packages.find]
+include = ["radiosynth*"]

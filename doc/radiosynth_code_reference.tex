@@ -1,0 +1,48 @@
+\documentclass[11pt,a4paper,oneside]{book}
+\input{preamble}
+\usepackage{xr}
+\externaldocument{radiosynth_user_manual}
+\hypersetup{pdftitle={radiosynth Line-by-line Code Reference},
+  pdfsubject={Line-by-line description of the radiosynth source code}}
+\begin{document}
+\frontmatter
+\begin{titlepage}
+\centering
+\vspace*{3cm}
+{\Huge\bfseries\color{accent} radiosynth\par}
+\vspace{0.25cm}
+{\huge\itshape From MHD to MHz\par}
+\vspace{0.6cm}
+{\LARGE Synthetic Radio Imaging of MHD Solar--Stellar\\[2pt] Coronal Model Output and Comparison with Observations\par}
+\vspace{0.4cm}
+{\large A standalone Python implementation of the BATS-R-US refractive radio ray-tracing tool,\\ with thermal free--free, gyroresonance and gyrosynchrotron emission and circular polarisation,\\ for BATS-R-US, PLUTO and other MHD codes --- the Sun and other stars\par}
+\vspace{1.5cm}
+\includegraphics[width=0.92\textwidth]{fig/ray_paths.png}\par
+\vspace{1.2cm}
+{\Large Line-by-line Code Reference\par}\vspace{0.3cm}{\normalsize Companion to the User Manual, \code{radiosynth\_user\_manual.pdf},\\ to which the references to chapters, sections and equations point.\par}
+\vfill
+{\Large Soumitra Hazra\par}
+\vspace{0.3cm}
+{\large Second version (2.2.0) \quad---\quad November 2026\par}
+\vspace{0.2cm}
+{\small Free software under the GNU General Public License, version 3 or later\par}
+\vspace{0.4cm}
+{\small Algorithm after Benkevitch et al.\ (2010, ApJ 725, 447) and Moschou et al.\ (2018, ApJ 867, 51)\par}
+\end{titlepage}
+
+\tableofcontents
+
+\mainmatter
+\chapter*{How this document is organised}
+\addcontentsline{toc}{chapter}{How this document is organised}
+This document describes the source code of \code{radiosynth} line by line; how to use the package and the physics are in the User Manual. The chapters follow the folders of the package (User Manual, Section~\ref{sec:layout}): first the
+common machinery (\code{radiosynth/common/}), then one group of chapters per emission
+mechanism (\code{simplistic/}, \code{bremsstrahlung/}, \code{gyroresonance/}), and finally
+the package files \code{\_\_init\_\_.py} and \code{\_\_main\_\_.py}. Each chapter lists the
+source in blocks, with the line numbers of the file, followed by a commentary that refers
+to individual lines. The listings are generated from the source files at the time the
+manual is built, so the line numbers always match the distributed code. \code{radiosynth} is written by Soumitra Hazra and is
+distributed under the GNU General Public License, version 3 or later; every source file
+starts with the corresponding copyright and licence lines.
+\input{coderef}
+\end{document}

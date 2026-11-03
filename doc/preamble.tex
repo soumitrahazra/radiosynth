@@ -1,0 +1,82 @@
+% shared preamble of the user manual and the code reference
+\usepackage[a4paper,margin=2.3cm,top=2.4cm,bottom=2.6cm]{geometry}
+\usepackage{fontspec}
+\usepackage{unicode-math}
+\setmainfont{Latin Modern Roman}
+\setsansfont{Latin Modern Sans}
+\setmonofont{DejaVu Sans Mono}[Scale=0.80]
+\setmathfont{Latin Modern Math}
+\usepackage{amsmath}
+\usepackage{xcolor}
+\usepackage{graphicx}
+\usepackage{booktabs,longtable,tabularx,array}
+\usepackage{enumitem}
+\usepackage{listings}
+\usepackage[most]{tcolorbox}
+\usepackage{fancyhdr}
+\usepackage{titlesec}
+\usepackage{tikz}
+\usetikzlibrary{arrows.meta,positioning,shapes.geometric,calc,3d}
+\usepackage{microtype}
+\usepackage{caption}
+\usepackage[colorlinks=true,linkcolor=blue!50!black,urlcolor=blue!50!black,citecolor=blue!50!black]{hyperref}
+
+\definecolor{codebg}{RGB}{248,248,246}
+\definecolor{codeframe}{RGB}{210,210,205}
+\definecolor{kw}{RGB}{0,70,150}
+\definecolor{cm}{RGB}{110,110,110}
+\definecolor{st}{RGB}{150,60,0}
+\definecolor{accent}{RGB}{30,80,140}
+\definecolor{notebg}{RGB}{236,243,250}
+\definecolor{warnbg}{RGB}{252,243,230}
+
+\lstdefinestyle{py}{
+  language=Python, basicstyle=\ttfamily\small, columns=fullflexible, keepspaces=true,
+  keywordstyle=\color{kw}\bfseries, commentstyle=\color{cm}\itshape, stringstyle=\color{st},
+  numbers=left, numberstyle=\ttfamily\scriptsize\color{gray}, numbersep=6pt,
+  backgroundcolor=\color{codebg}, frame=single, rulecolor=\color{codeframe},
+  breaklines=true, breakatwhitespace=false, postbreak=\mbox{\textcolor{gray}{$\hookrightarrow$}\space},
+  showstringspaces=false, tabsize=4, xleftmargin=2.2em, framexleftmargin=2.0em,
+  upquote=true, aboveskip=6pt, belowskip=4pt,
+  morekeywords={self,None,True,False,as,with,yield,lambda,nonlocal}
+}
+\lstdefinestyle{plain}{
+  basicstyle=\ttfamily\small, columns=fullflexible, keepspaces=true, numbers=none,
+  backgroundcolor=\color{codebg}, frame=single, rulecolor=\color{codeframe},
+  breaklines=true, showstringspaces=false, upquote=true, aboveskip=6pt, belowskip=6pt,
+  xleftmargin=0.3em, framexleftmargin=0.2em
+}
+\lstdefinestyle{pyex}{style=py, numbers=none, xleftmargin=0.3em, framexleftmargin=0.2em}
+\lstset{style=plain}
+
+\newtcolorbox{note}[1][Note]{colback=notebg,colframe=accent,boxrule=0.5pt,arc=2pt,
+  left=6pt,right=6pt,top=4pt,bottom=4pt,fonttitle=\bfseries\small,title=#1}
+\newtcolorbox{warn}[1][Caution]{colback=warnbg,colframe=orange!70!black,boxrule=0.5pt,arc=2pt,
+  left=6pt,right=6pt,top=4pt,bottom=4pt,fonttitle=\bfseries\small,title=#1}
+
+\newcommand{\code}[1]{\texttt{#1}}
+\newcommand{\Rsun}{R_\odot}
+\newcommand{\rsun}{\ensuremath{R_\odot}}
+\newcommand{\vect}[1]{\mathbf{#1}}
+
+% line-by-line commentary list
+\newlist{lines}{description}{1}
+\setlist[lines]{font=\ttfamily\small\color{accent},leftmargin=5.2em,labelwidth=4.8em,
+  labelsep=0.4em,itemsep=1pt,parsep=1pt,topsep=3pt,align=right}
+
+\titleformat{\chapter}[display]{\normalfont\bfseries\color{accent}}{\large\scshape Chapter \thechapter}{4pt}{\huge}
+\titlespacing*{\chapter}{0pt}{-10pt}{18pt}
+\titleformat{\section}{\normalfont\Large\bfseries\color{accent}}{\thesection}{0.7em}{}
+\titleformat{\subsection}{\normalfont\large\bfseries}{\thesubsection}{0.7em}{}
+
+\pagestyle{fancy}
+\fancyhf{}
+\fancyhead[L]{\small\itshape radiosynth v2.2}
+\fancyhead[R]{\small\nouppercase{\leftmark}}
+\fancyfoot[C]{\small\thepage}
+\renewcommand{\headrulewidth}{0.4pt}
+\setlength{\headheight}{14pt}
+
+\setlength{\parindent}{0pt}
+\setlength{\parskip}{5pt plus 1pt}
+
