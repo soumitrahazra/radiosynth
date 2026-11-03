@@ -126,7 +126,7 @@ never refracted.
 ## Installation
 
 ```bash
-git clone https://github.com/<your-account>/radiosynth.git
+git clone https://github.com/soumitrahazra/radiosynth.git
 cd radiosynth
 pip install -e .            # or: pip install -e ".[all]" for astropy and sunpy
 python -m radiosynth --help
