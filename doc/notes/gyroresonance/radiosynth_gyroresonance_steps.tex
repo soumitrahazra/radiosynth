@@ -1,0 +1,461 @@
+% radiosynth - From MHD to MHz: thermal gyroresonance radio emission, step-by-step calculation
+% Copyright (C) 2026 Soumitra Hazra
+% Compile with: pdflatex radiosynth_gyroresonance_steps.tex (twice)
+\documentclass[11pt,a4paper]{article}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage{helvet}
+\renewcommand{\familydefault}{\sfdefault}
+\usepackage[margin=2.4cm,bottom=2.6cm]{geometry}
+\usepackage{amsmath,amssymb,bm}
+\usepackage{booktabs}
+\usepackage{xcolor}
+\usepackage{enumitem}
+\usepackage{titlesec}
+\usepackage{fancyhdr}
+\usepackage{needspace}
+\usepackage[colorlinks=true,linkcolor=blue!50!black,urlcolor=blue!50!black]{hyperref}
+
+\definecolor{head}{RGB}{31,73,125}
+\definecolor{boxbg}{RGB}{238,244,250}
+\titleformat{\section}{\needspace{6\baselineskip}\color{head}\large\bfseries}{\thesection.}{0.4em}{}
+\titleformat{\subsection}{\color{head}\normalsize\bfseries\itshape}{\thesubsection}{0.5em}{}
+\titlespacing*{\section}{0pt}{14pt}{5pt}
+\titlespacing*{\subsection}{0pt}{9pt}{3pt}
+\pagestyle{fancy}\fancyhf{}\renewcommand{\headrulewidth}{0pt}
+\fancyfoot[R]{\small\color{gray}Page \thepage}
+\setlength{\parskip}{5pt}\setlength{\parindent}{0pt}
+\setlength{\emergencystretch}{2.5em}
+\setlist{itemsep=1pt,topsep=3pt}
+
+\newcommand{\vect}[1]{\bm{#1}}
+\newcommand{\dd}{\mathrm{d}}
+\newcommand{\kB}{k_\mathrm{B}}
+\newcommand{\nuB}{\nu_B}
+\newcommand{\code}[1]{\texttt{#1}}
+\newcommand{\example}[1]{\par\noindent\colorbox{boxbg}{\parbox{\dimexpr\linewidth-2\fboxsep}{\small\textbf{Numerical example.} #1}}\par}
+\newcommand{\whatitmeans}[1]{\par{\color{head}\textbf{What this means:}} #1\par}
+\newcommand{\incode}[1]{\par{\small\color{head!80!black}\textbf{In radiosynth:} #1}\par}
+
+\hypersetup{pdftitle={Thermal Gyroresonance Radio Emission in radiosynth},pdfauthor={Soumitra Hazra}}
+
+\begin{document}
+
+\setcounter{section}{-1}
+\begin{center}
+{\LARGE\bfseries\color{head} Thermal Gyroresonance Radio Emission in radiosynth\par}
+\end{center}
+\vspace{2pt}
+\textbf{Step-by-step calculation from a 3D MHD simulation}\\
+With separate derivation subsections for the Appleton--Hartree formula and the harmonic-layer
+optical depth.
+
+Soumitra Hazra --- \textsf{radiosynth} 2.2.0, \emph{From MHD to MHz}, November 2026 ---
+\url{https://github.com/soumitrahazra/radiosynth}
+
+The equations are written in Gaussian-cgs units; for SI, replace $e^2$ by $e^2/(4\pi\varepsilon_0)$
+(radiosynth itself computes in SI). A single worked example runs through all steps: a ray at
+5\,GHz crossing the third-harmonic layer in a corona with $n_e=10^9$\,cm$^{-3}$ and
+$T_e=2$\,MK, at $\theta=60^\circ$ to the field. Every number in it was computed with radiosynth.
+
+\textbf{How to read this note.} Each step has the same shape: a short explanation, the equations
+(with every intermediate line of the derivations in Steps~4 and 5), a sentence on \emph{what this means},
+the worked numbers, and the function of radiosynth that does it. You can follow the physics
+without the code, or the code without the derivations.
+
+%======================================================================
+\section{Start from the MHD model and set up the rays}
+%======================================================================
+The model supplies, at any point, the electron density $n_e$, the electron temperature $T_e$ and
+the magnetic field $\vect B$ (in gauss). For each image pixel, radiosynth uses one
+\emph{straight} line of sight: refraction is negligible where gyroresonance emission forms,
+because there the observing frequency is far above the plasma frequency. Let $\hat{\vect k}$ be
+the unit vector along the line, \emph{towards the observer}. The line is sampled at nodes
+$k=0,1,\ldots,N$ spaced by $\Delta\ell$, with node 0 nearest to the observer, from where the line
+enters the model to where it leaves it or reaches the photosphere. At every node:
+\[
+  B_k=|\vect B_k|,\qquad \cos\theta_k=\frac{\vect B_k\cdot\hat{\vect k}}{B_k},\qquad
+  n_{e,k},\quad T_{e,k}.
+\]
+By default $\Delta\ell$ is half the smallest cell of the model grid. It must resolve the variation
+of the model, not the thin layers, which are found between the nodes (Step~2).
+\incode{\code{common/straight.py}: \code{segment\_ends}, \code{default\_step}, \code{iter\_samples}.}
+
+%======================================================================
+\section{Choose an observing frequency and detect the resonance layers}
+%======================================================================
+For thermal electrons, the nonrelativistic gyrofrequency is
+\begin{equation}
+  \nuB=\frac{eB}{2\pi m_ec}\simeq2.80\times10^6\,B[\text{G}]\ \text{Hz}.
+\end{equation}
+At harmonic $s$, the resonance condition and the field strength it requires are
+\begin{equation}
+  \nu=s\,\nuB,\qquad B_s=\frac{\nu}{2.80\times10^6\,s}\ \text{G}.
+\end{equation}
+\whatitmeans{an electron spirals around the field line $\nuB$ times per second, and it can absorb or emit a
+wave whose frequency is $\nuB$ or an integer multiple of it. Because $B$ falls with height above a sunspot,
+each harmonic $s$ picks out one surface of constant $|B|$.}
+At 5\,GHz: $s=1$: 1786\,G; $s=2$: 893\,G; $s=3$: 595\,G; $s=4$: 447\,G. A ray can cross several
+of these surfaces of constant $|B|$.
+
+Between nodes $k$ and $k+1$ a layer of harmonic $s$ is present when
+\begin{equation}
+  (s\,\nu_{B,k}-\nu)(s\,\nu_{B,k+1}-\nu)<0
+  \quad\Longleftrightarrow\quad (B_k-B_s)(B_{k+1}-B_s)<0 .
+\end{equation}
+All harmonics $s=1\ldots s_\text{max}$ (default 10) are tested in every step, and several layers can
+fall into one step. This assumes $B$ varies smoothly between nodes; use smaller steps if a
+harmonic surface could be crossed twice in one step.
+
+%======================================================================
+\section{Locate each crossing and interpolate the plasma}
+%======================================================================
+For a crossing between $B_k$ and $B_{k+1}$, radiosynth interpolates linearly in $\nuB$ (that is, in
+$B$):
+\begin{equation}
+  u=\frac{\nu/s-\nu_{B,k}}{\nu_{B,k+1}-\nu_{B,k}}=\frac{B_s-B_k}{B_{k+1}-B_k},\qquad
+  \ell_c=\ell_k+u\,\Delta\ell .
+\end{equation}
+The plasma parameters on the layer are interpolated with the same weight,
+\begin{equation}
+  q_c=q_k+u\,(q_{k+1}-q_k),\qquad q\in\{n_e,\ T_e,\ \cos\theta,\ X\},
+\end{equation}
+where $X=(\nu_p/\nu)^2$ is defined in Step~4. Note that radiosynth interpolates $\cos\theta$ between
+the nodes, rather than recomputing it from an interpolated field vector; for steps that resolve
+the field the two agree.
+
+\example{$B_k=500$\,G, $B_{k+1}=650$\,G and $B_3=595.4$\,G give $u=95.4/150=0.636$. For a
+1000\,km step, the crossing is 636\,km from node $k$.}
+
+%======================================================================
+\section{Calculate the magnetic scale length}
+%======================================================================
+The integrated opacity depends on how fast the field strength changes along the ray:
+\begin{equation}
+  L_B=\left|\frac{B}{\dd B/\dd\ell}\right|_c\simeq\frac{B_s\,\Delta\ell}{|B_{k+1}-B_k|}.
+\end{equation}
+\whatitmeans{a wave crossing the layer stays in resonance only while $s\nuB$ is within the thin line width of
+$\nu$. If the field changes slowly (large $L_B$), that takes a longer path, so more electrons absorb: the
+optical depth is proportional to $L_B$ (Step~5).}
+\example{$B_3=595.4$\,G and a 150\,G change across 1000\,km give $L_B=3969$\,km.}
+\incode{\code{gyroresonance/transfer.py}, function \code{transfer\_chunk}: the test \code{cross},
+the weight \code{u}, \code{lerp}, and \code{l\_b}.}
+
+%======================================================================
+\section{Derivation subsection A: the Appleton--Hartree magneto-ionic formula}
+%======================================================================
+\subsection{Definitions and physical assumptions}
+In a cold, collisionless, magnetised electron plasma (ions at rest), linearising the electron
+equation of motion and Maxwell's equations gives a dielectric tensor. Solving the dispersion
+relation for transverse waves yields two eigenmodes, the ordinary (o) and extraordinary (x)
+modes. Define
+\begin{equation}
+  X=\frac{\nu_p^2}{\nu^2},\qquad Y=\frac{\nuB}{\nu},\qquad
+  \nu_p^2=\frac{n_ee^2}{\pi m_e}\quad\Big(\text{SI: } \frac{n_ee^2}{4\pi^2\varepsilon_0m_e}\Big).
+\end{equation}
+The refractive index is $n=ck/\omega$, and $\theta$ is the angle between the wave vector and the
+magnetic field.
+
+\subsection{Algebraic route from the dielectric tensor}
+In a frame with $\vect B$ along $z$, the cold-plasma dielectric tensor has the Stix components
+\begin{equation}
+  R=1-\frac{X}{1-Y},\quad L=1-\frac{X}{1+Y},\quad S=\frac{R+L}{2},\quad D=\frac{R-L}{2},\quad P=1-X,
+\end{equation}
+with diagonal elements $(S,S,P)$, $\epsilon_{xy}=-iD$, $\epsilon_{yx}=iD$, and all other entries zero.
+For a plane wave $\propto e^{i(\vect k\cdot\vect r-\omega t)}$, Maxwell's equations give
+$\vect n\times(\vect n\times\vect E)+\boldsymbol\epsilon\cdot\vect E=0$ with $\vect n=c\vect k/\omega$. Taking $\vect n=n(\sin\theta,0,\cos\theta)$ in the $x$--$z$ plane, this is
+$\mathbf M\,\vect E=0$ with the wave matrix
+\begin{equation}
+  \mathbf M=\begin{pmatrix}
+    S-n^2\cos^2\theta & -iD & n^2\sin\theta\cos\theta\\
+    iD & S-n^2 & 0\\
+    n^2\sin\theta\cos\theta & 0 & P-n^2\sin^2\theta
+  \end{pmatrix}.
+\end{equation}
+A wave exists only if $\det\mathbf M=0$. Expanding along the middle row and using $S^2-D^2=RL$,
+\begin{align}
+  \det\mathbf M&=(S-n^2)\Big[(S-n^2\cos^2\theta)(P-n^2\sin^2\theta)-n^4\sin^2\theta\cos^2\theta\Big]
+              -D^2\,(P-n^2\sin^2\theta)\nonumber\\
+  &=A\,n^4-B_\text{S}\,n^2+C=0,
+\end{align}
+which is a quadratic in $n^2$,
+\begin{equation}
+  A\,n^4-B_\text{S}\,n^2+C=0,\quad
+  A=S\sin^2\theta+P\cos^2\theta,\quad
+  B_\text{S}=RL\sin^2\theta+PS(1+\cos^2\theta),\quad
+  C=PRL,
+\end{equation}
+with the two roots
+\begin{equation}
+  n^2=\frac{B_\text{S}\pm F}{2A},\qquad F^2=(RL-PS)^2\sin^4\theta+4P^2D^2\cos^2\theta .
+\end{equation}
+Now insert $R$, $L$, $S$, $D$, $P$ in terms of $X$ and $Y$. Three identities do most of the work:
+\begin{equation}
+  RL=\frac{(1-X)^2-Y^2}{1-Y^2},\qquad RL-PS=-\frac{XY^2}{1-Y^2},\qquad D=-\frac{XY}{1-Y^2},
+\end{equation}
+so that
+\begin{equation}
+  F=\frac{XY}{1-Y^2}\sqrt{Y^2\sin^4\theta+4(1-X)^2\cos^2\theta}.
+\end{equation}
+Dividing $B_\text{S}\pm F$ by $2A$ and simplifying, the two roots take the collisionless Appleton--Hartree form
+\begin{equation}
+  n_\pm^2=1-\frac{X(1-X)}{(1-X)-\tfrac12Y^2\sin^2\theta\pm\sqrt{\tfrac14Y^4\sin^4\theta+(1-X)^2Y^2\cos^2\theta}} .
+  \label{eq:ah}
+\end{equation}
+\whatitmeans{in a magnetised plasma a radio wave can only travel in two ways, and each has its own
+refractive index. The formula tells us which way is which, and where each one stops.}
+(the root $(B_\text{S}+F)/2A$ is the upper sign). The branches are identified from their limits. Along the field ($\theta=0$) the denominator is
+$(1-X)(1\pm Y)$, so $n_+^2=1-X/(1+Y)=L$ and $n_-^2=1-X/(1-Y)=R$. Across the field ($\theta=90^\circ$),
+$n_+^2=1-X$. The upper sign is therefore the o-mode and the lower sign the x-mode, and for $Y<1$
+the cutoffs ($n^2=0$) are
+\begin{equation}
+  \text{o-mode: } X\ge1,\qquad\qquad \text{x-mode: } X\ge1-Y .
+\end{equation}
+A non-propagating mode cannot transmit radiation from behind its cutoff. On the fundamental
+layer ($Y=1$) the x-mode is cut off for any $X>0$.
+
+\subsection{Polarisation of the modes}
+The same eigenvectors give the polarisation. Neglecting the small longitudinal part, the electric
+vector of mode $\sigma$ traces an ellipse with axial ratio $T_\sigma$, $T_oT_x=-1$, and
+\begin{equation}
+  |T_x|=\frac{\sqrt{Y^2\sin^4\theta+4(1-X)^2\cos^2\theta}-Y\sin^2\theta}{2(1-X)|\cos\theta|}
+       =\frac{2(1-X)|\cos\theta|}{Y\sin^2\theta+\sqrt{Y^2\sin^4\theta+4(1-X)^2\cos^2\theta}}
+\end{equation}
+(the second form, used in the code, avoids the cancellation at small $\cos\theta$). Along the field
+$|T_x|=1$: both modes are circular. Across the field $T_x=0$: the x-mode is linear with
+$\vect E\perp\vect B$. The x-mode rotates in the same sense as the gyrating electrons. Seen by an
+observer towards whom $\vect B$ points ($\vect B\cdot\hat{\vect k}>0$), the electrons, and hence the x-mode, rotate
+counter-clockwise: right-hand circular polarisation in the IAU/IEEE convention, Stokes $V>0$.
+\example{At the $s=3$ layer at 5\,GHz, $X=0.0032$ and $Y=1/3$, so $n^2_o=0.997$ and
+$n^2_x=0.996$ at $60^\circ$: the refractive index is 1 to better than 0.5\,\%, which justifies setting
+$n_\sigma=1$ in Step~5. The axial ratio is $|T_x|=0.78$.}
+
+This is a cold-plasma propagation result. It does not by itself give the gyroresonance
+absorption: that is supplied by the thermal electron distribution (Subsection~B).
+\incode{\code{common/magnetoionic.py}: \code{magnetoionic\_params}, \code{refractive\_index2}
+(Eq.~\ref{eq:ah}), \code{cutoff}, \code{axial\_ratio\_x}.}
+
+%======================================================================
+\section{Derivation subsection B: optical depth of a harmonic layer}
+%======================================================================
+\subsection{Thermal resonance width}
+Thermal electrons move along the field, so the resonance is Doppler-shifted. For weakly
+relativistic electrons,
+\begin{equation}
+  \nu\left(1-n_\sigma\beta_\parallel\cos\theta\right)\simeq\frac{s\,\nuB}{\gamma}.
+\end{equation}
+To leading order, with $n_\sigma\simeq1$, a normalised Gaussian represents the resonance:
+\begin{equation}
+  \phi_s(\nu)=\frac{1}{\sqrt\pi\,\Delta\nu_D}\exp\!\left[-\frac{(\nu-s\nuB)^2}{\Delta\nu_D^2}\right],
+  \qquad
+  \Delta\nu_D=\sqrt2\,\nu\,\beta_T|\cos\theta|,\qquad \beta_T^2=\frac{\kB T_e}{m_ec^2}.
+\end{equation}
+Near $\theta=90^\circ$ the first-order Doppler width vanishes and relativistic broadening takes over;
+as shown in 5.4, the final optical depth does not depend on the width, so this does not change
+the result.
+
+\subsection{Low-temperature harmonic strength}
+The cyclotron coupling involves the Bessel functions $J_{s-1}(s\beta_\perp\sin\theta)$. For small
+arguments, $J_{s-1}(x)\simeq(x/2)^{s-1}/(s-1)!$. A Maxwellian distribution of perpendicular
+velocities is
+\begin{equation}
+  f(\beta_\perp)\,\dd\beta_\perp\propto\exp\!\left[-\frac{\beta_\perp^2}{2\beta_T^2}\right]\beta_\perp\,\dd\beta_\perp .
+\end{equation}
+Its moments follow with the substitution $t=\beta_\perp^2/(2\beta_T^2)$, $\beta_\perp\,\dd\beta_\perp=\beta_T^2\,\dd t$:
+\begin{equation}
+  \left\langle\beta_\perp^{2m}\right\rangle
+  =\frac{\int_0^\infty\beta_\perp^{2m}e^{-\beta_\perp^2/2\beta_T^2}\beta_\perp\,\dd\beta_\perp}{\int_0^\infty e^{-\beta_\perp^2/2\beta_T^2}\beta_\perp\,\dd\beta_\perp}
+  =\frac{(2\beta_T^2)^m\int_0^\infty t^me^{-t}\,\dd t}{\int_0^\infty e^{-t}\,\dd t}=m!\,(2\beta_T^2)^m .
+\end{equation}
+Squaring the small-argument form, $J_{s-1}^2\simeq(s\sin\theta/2)^{2(s-1)}\beta_\perp^{2(s-1)}/[(s-1)!]^2$, and averaging with $m=s-1$:
+\begin{equation}
+  s\left\langle J_{s-1}^2\right\rangle\simeq s\,\frac{(s\sin\theta/2)^{2(s-1)}\,(s-1)!\,(2\beta_T^2)^{s-1}}{[(s-1)!]^2}
+  =\frac{s^2}{s!}\left(\frac{s^2\beta_T^2\sin^2\theta}{2}\right)^{s-1}\left[1+O(s^2\beta_T^2)\right].
+\end{equation}
+\whatitmeans{the bracket is tiny ($\sim10^{-3}$) and is raised to the power $s-1$, so each higher harmonic is roughly a
+thousand times weaker; and $\sin^2\theta$ means electrons hardly absorb a wave travelling along the field.}
+The polarisation of the mode introduces the factor
+\begin{equation}
+  F_\sigma(\theta)=\frac{(1+T_\sigma\cos\theta)^2}{1+T_\sigma^2},
+\end{equation}
+with $T_\sigma$ from 4.3 evaluated on the layer ($Y=1/s$) and signed so that $T_x\cos\theta>0$. Along the field
+$F_x=2$ and $F_o=0$; across it $F_x=1$ and $F_o=0$ at this order.
+\example{For $s=3$ at $60^\circ$: $F_x=1.201$ and $F_o=0.049$. With $\beta_T^2=3.37\times10^{-4}$
+(2\,MK), the factor $(s^2\beta_T^2\sin^2\theta/2)$ is $1.14\times10^{-3}$: each extra harmonic costs about
+three orders of magnitude.}
+
+\subsection{Local absorption coefficient}
+The local absorption coefficient of mode $\sigma$ near harmonic $s$ is a line of fixed area
+$A_{s\sigma}$ times the normalised profile:
+\begin{equation}
+  \kappa_{s\sigma}(\nu,\ell)=A_{s\sigma}(\ell)\,\phi_s\big[\nu-s\nuB(\ell)\big],\qquad
+  A_{s\sigma}=\frac{\pi e^2}{m_ec}\,n_e\,\frac{s^2}{s!}\left(\frac{s^2\beta_T^2\sin^2\theta}{2}\right)^{s-1}F_\sigma(\theta),
+\end{equation}
+neglecting higher-order thermal terms and with $n_\sigma\simeq1$ (the full expression contains a factor
+$n_\sigma^{2s-3}$). Numerically, $\pi e^2/(m_ec)=0.02654$\,cm$^2$\,s$^{-1}$.
+
+\subsection{Integrate through the narrow layer}
+At fixed $\nu$, the ray passes through a region where $s\nuB(\ell)$ sweeps across $\nu$. This region has
+thickness $\delta\ell\simeq\sqrt2\beta_T|\cos\theta|\,L_B$, a few per cent of $L_B$, so $A_{s\sigma}$ and the field
+gradient are nearly constant across it. Then
+\begin{equation}
+  \tau_{s\sigma}=\int\kappa_{s\sigma}\,\dd\ell=A_{s\sigma}\int\phi_s\big(\nu-s\nuB(\ell)\big)\,\dd\ell .
+\end{equation}
+Change the integration variable from the path $\ell$ to the local resonance frequency
+$q=s\nuB(\ell)$. Then $\dd q=s\,(\dd\nuB/\dd\ell)\,\dd\ell$, i.e.\ $\dd\ell=\dd q/(s|\dd\nuB/\dd\ell|)$, and
+\begin{equation}
+  \int\phi_s\big(\nu-s\nuB(\ell)\big)\,\dd\ell=\frac{1}{s|\dd\nuB/\dd\ell|}\int\phi_s(\nu-q)\,\dd q=\frac{1}{s|\dd\nuB/\dd\ell|},
+\end{equation}
+because the profile has unit area. Hence
+\begin{equation}
+  \tau_{s\sigma}=\frac{A_{s\sigma}}{s\,|\dd\nuB/\dd\ell|}.
+\end{equation}
+On the resonance $s\nuB=\nu$ and $|\dd\nuB/\dd\ell|=\nuB/L_B$, so $s|\dd\nuB/\dd\ell|=\nu/L_B$. Substituting
+gives the optical depth of the layer:
+\begin{equation}
+  \boxed{\;
+  \tau_{s\sigma}=\frac{\pi e^2}{m_ec}\,\frac{n_eL_B}{\nu}\;\frac{s^2}{s!}
+  \left(\frac{s^2\beta_T^2\sin^2\theta}{2}\right)^{s-1}F_\sigma(\theta)\;}
+  \label{eq:tau}
+\end{equation}
+\whatitmeans{the layer is a thin wall whose opacity depends only on the plasma at the wall ($n_e$, $T_e$,
+$\theta$), on how fast the field changes there ($L_B$), and on the mode. Its microscopic thickness drops out.}
+The Gaussian width cancels because the whole resonance is integrated. This is why radiosynth can
+treat each layer as a jump in optical depth instead of resolving its width.
+
+\subsection{Interpretation and limits}
+At fixed $s$ and $\nu$, $\tau_{s\sigma}\propto n_e\,L_B\,T_e^{s-1}\sin^{2s-2}\theta\,F_\sigma(\theta)$. Higher harmonics
+are much thinner, and a layer seen along the field ($\sin\theta\to0$) is almost transparent. At the
+fundamental the x-mode is cut off (4.2), so radiosynth sets $\tau_{1x}=0$ when $X>0$.
+\example{Our layer ($n_e=10^9$\,cm$^{-3}$, $T_e=2$\,MK, $\theta=60^\circ$, $L_B=3969$\,km) has
+$\tau_{3x}=4.92$ and $\tau_{3o}=0.200$. With $L_B=10^9$\,cm the same layer would have
+$\tau_{3x}=12.4$ and $\tau_{3o}=0.50$; there the $s=2$ layer is far thicker
+($\tau_{2x}\approx6600$, $\tau_{2o}\approx130$) and the $s=4$ layer thin ($\tau_{4x}\approx0.035$).}
+\incode{\code{gyroresonance/opacity.py}: \code{mode\_factor} and \code{layer\_optical\_depth}
+(Eq.~\ref{eq:tau}); \code{harmonic\_field} gives $B_s$.}
+
+%======================================================================
+\section{Add free--free absorption between layers}
+%======================================================================
+Between the layers, the plasma absorbs by free--free collisions. radiosynth uses the
+Coulomb-logarithm form of Dulk (1985), evaluated at the mid-point of the step,
+\begin{equation}
+  \kappa_\text{ff}=9.78\times10^{-3}\,\frac{n_e^2}{\nu^2T_e^{3/2}}\big(24.5+\ln T_e-\ln\nu\big)\ \text{cm}^{-1}
+  \qquad(T_e>2\times10^5\,\text{K}),
+\end{equation}
+split between the modes as
+\begin{equation}
+  \kappa_{\text{ff},x}=\frac{\kappa_\text{ff}}{(1-q)^2},\qquad
+  \kappa_{\text{ff},o}=\frac{\kappa_\text{ff}}{(1+q)^2},\qquad q=\min(Y|\cos\theta|,\,0.9).
+\end{equation}
+Each step has $\Delta\tau_{\text{ff},\sigma}=\kappa_{\text{ff},\sigma}\Delta\ell$. Adding the layers crossed in the step,
+\begin{equation}
+  \Delta\tau_\sigma=\Delta\tau_{\text{ff},\sigma}+\sum_{s\,\in\,\text{crossings}}\tau_{s\sigma}.
+\end{equation}
+By Kirchhoff's law each mode emits $\nu^2\kB T_e/c^2$. When the parts of a step have different
+temperatures, it glows at the optical-depth-weighted temperature
+\begin{equation}
+  T_\text{eff}=\frac{\Delta\tau_{\text{ff},\sigma}\,\bar T_e+\sum_s\tau_{s\sigma}T_{e,c}}{\Delta\tau_\sigma}.
+\end{equation}
+\example{For our step, $\Delta\tau_{\text{ff},x}=3.3\times10^{-4}$ and $\Delta\tau_{\text{ff},o}=1.7\times10^{-4}$ over
+1000\,km: negligible next to the layer, so $\Delta\tau_x=4.92$, $\Delta\tau_o=0.200$ and $T_\text{eff}=2$\,MK.}
+\incode{\code{bremsstrahlung/emission.py} (\code{gaunt="dulk"}) and
+\code{bremsstrahlung/magnetized.py}; in \code{transfer\_chunk}, \code{dtau\_x}, \code{dtau\_o} and the sums
+\code{st\_x}, \code{st\_o}.}
+
+%======================================================================
+\section{Solve the radiative transfer towards the observer}
+%======================================================================
+Along the ray, the intensity of one polarisation obeys $\dd I/\dd\tau=S-I$: absorption removes $I$ and the
+plasma adds its source function $S=\nu^2\kB T_\text{eff}/c^2$. In brightness-temperature units
+($T=Ic^2/\kB\nu^2$) this is $\dd T/\dd\tau=T_\text{eff}-T$. Multiplying by $e^{\tau}$ gives $\dd(Te^{\tau})/\dd\tau=T_\text{eff}e^{\tau}$, and
+integrating across a step of optical depth $\Delta\tau$ with constant $T_\text{eff}$ gives the exact step formula.
+For each polarisation, the transfer can therefore be done from the far end of the ray towards the
+observer, one step at a time:
+\begin{equation}
+  T_{b,\text{out}}=T_{b,\text{in}}\,e^{-\Delta\tau}+T_\text{eff}\left(1-e^{-\Delta\tau}\right).
+  \label{eq:rec}
+\end{equation}
+If $\Delta\tau\gg1$ the outgoing brightness approaches the local electron temperature; if $\Delta\tau\ll1$
+and the background is negligible, the step adds about $T_\text{eff}\,\Delta\tau$.
+
+radiosynth sums the same thing from the observer inwards. For two steps, with step 0 next to
+the observer and nothing behind step 1, Eq.~\eqref{eq:rec} gives
+\begin{equation}
+  T=\underbrace{T_1\left(1-e^{-\Delta\tau_1}\right)}_{\text{leaves step 1}}e^{-\Delta\tau_0}+T_0\left(1-e^{-\Delta\tau_0}\right),
+\end{equation}
+so each step's emission is dimmed by all the steps in front of it. For any number of steps:
+\begin{equation}
+  T_p=\sum_{k=0}^{N-1}T_{\text{eff},k}\left(1-e^{-\Delta\tau_k}\right)\exp\!\Big(-\sum_{j<k}\Delta\tau_j\Big),
+\end{equation}
+where $T_p=I_pc^2/(\kB\nu^2)$ is the brightness temperature of one polarisation (each carries half
+of the Rayleigh--Jeans intensity). The two forms are mathematically identical. A polarisation
+stops at its first cutoff node (4.2): steps behind it contribute nothing. Optionally, lines that
+end on the photosphere add a body temperature $T_\text{body}\,e^{-\tau_p}$.
+\whatitmeans{an opaque step ($\Delta\tau\gg1$) shows its own temperature and hides everything behind it; a transparent one
+adds a little of its temperature and lets the light from behind through.}
+\example{With no emission behind the step, the x-mode gives $T=2\,\text{MK}\,(1-e^{-4.92})=1.99$\,MK
+and the o-mode $T=2\,\text{MK}\,(1-e^{-0.200})=0.36$\,MK.}
+\incode{\code{transfer\_chunk}: \code{alive} (cutoffs), \code{tau\_front}, \code{w = exp(-tau\_front) *
+-expm1(-d)}, and the body term with the keyword \code{t\_body}.}
+
+%======================================================================
+\section{Combine the polarisations and form radio maps}
+%======================================================================
+Where $\vect B\cdot\hat{\vect k}$ changes sign along a ray (a quasi-transverse region), the radiation either keeps
+its sense of circular polarisation (weak coupling, the default and the usual case at
+microwaves) or keeps its mode identity (strong coupling). With weak coupling, radiosynth follows
+right- ($R$) and left-hand ($L$) circular polarisation: in each step, $R$ uses the x-mode optical depth
+where $\vect B\cdot\hat{\vect k}>0$ and the o-mode one elsewhere, and $L$ the opposite. With strong coupling it
+follows the x- and o-modes and takes the sign of $V$ from the field direction at the observer's
+end of the ray. Then
+\begin{equation}
+  I=I_R+I_L,\qquad V=I_R-I_L,\qquad P_c=V/I,
+\end{equation}
+and the Rayleigh--Jeans brightness temperatures are
+\begin{equation}
+  T_b=\frac{c^2I}{2\kB\nu^2}=\tfrac12\,(T_R+T_L),\qquad T_b(V)=\tfrac12\,(T_R-T_L).
+\end{equation}
+Repeating this for every pixel gives the brightness-temperature and polarisation maps, and the
+flux density is $F=\sum_\text{pixels}I\,\Delta\Omega$ with $\Delta\Omega$ the solid angle of a pixel.
+\whatitmeans{the x-mode sees an opaque wall and the o-mode a thin veil, so most of the light comes out in
+one hand of circular polarisation; its sign gives the direction of the field.}
+\example{If $\vect B$ points towards the observer, $R$ is the x-mode: $T_R=1.99$\,MK, $T_L=0.36$\,MK, so
+$T_b=1.17$\,MK and $P_c=+0.69$. Reversing the field gives $P_c=-0.69$.}
+\incode{\code{transfer\_chunk} (\code{coupling="weak"} or \code{"strong"}); \code{gyroresonance/image.py},
+class \code{GRImage}: \code{intensity}, \code{stokes\_v}, \code{brightness\_temperature},
+\code{tb\_v}, \code{polarization}, \code{flux\_density}; driver \code{rs.make\_gr\_image}.}
+
+%======================================================================
+\section{Compact numerical checklist}
+%======================================================================
+Choose $\nu$ $\rightarrow$ trace one straight ray $\rightarrow$ sample $\vect B$, $n_e$, $T_e$ at the nodes $\rightarrow$
+detect $B=B_s$ crossings $\rightarrow$ interpolate the local plasma $\rightarrow$ estimate $L_B$ $\rightarrow$ calculate
+$\tau_{s,x}$ and $\tau_{s,o}$ $\rightarrow$ calculate the free--free $\Delta\tau$ $\rightarrow$ assign the modes to $R$ and $L$ $\rightarrow$
+perform the radiative transfer (stopping at cutoffs) $\rightarrow$ convert to Stokes $I$ and $V$ $\rightarrow$
+repeat for every image pixel.
+
+\begin{center}
+\small
+\begin{tabular}{@{}l l@{}}
+\toprule
+Keyword of \code{rs.make\_gr\_image} & Meaning \\
+\midrule
+\code{mechanisms} (\code{"gr+ff"}, \code{"gr"}, \code{"ff"}) & include layers, free--free, or both \\
+\code{s\_max} (default 10) & highest harmonic tested \\
+\code{coupling} (\code{"weak"}, \code{"strong"}) & mode coupling, Step 8 \\
+\code{gaunt} (\code{"dulk"} or a number) & free--free coefficient, Step 6 \\
+\code{ds} & step $\Delta\ell$ along the rays \\
+\code{t\_body} & brightness temperature behind the rays, Step 7 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\vspace{4pt}
+{\small\color{head}\textbf{Source:} \color{gray} Hazra, \emph{Thermal gyroresonance emission in radiosynth:
+Equations, derivation and numerical implementation}, radiosynth 2.2.0, November 2026, which gives
+the full derivation, the validation tests and the code references. Further reading: Zheleznyakov
+1970, \emph{Radio Emission of the Sun and Planets}; Melrose 1980, \emph{Plasma Astrophysics}; White \&
+Kundu 1997, Sol.\ Phys.\ 174, 31; Dulk 1985, ARA\&A 23, 169; Cohen 1960, ApJ 131, 664.}
+
+\end{document}
