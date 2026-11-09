@@ -6,8 +6,11 @@
 
 [![DOI](https://zenodo.org/badge/1444487678.svg)](https://doi.org/10.5281/zenodo.23924217)
 
-radiosynth turns the output of a magnetohydrodynamic (MHD) simulation of a solar or
-stellar corona into the radio images, spectra and polarisation maps that a radio telescope
+radiosynth is an open-source Python package for modelling radio emission and generating synthetic radio images of the solar and stellar coronae from three-dimensional magnetohydrodynamic (MHD) simulations.
+
+The package provides tools for radio radiative transfer, refractive ray tracing, and the synthesis of radio emission from coronal plasma. It supports physical models of thermal free-free emission, gyroresonance emission, and gyrosynchrotron emission.
+
+radiosynth turns the output of a magnetohydrodynamic (MHD) simulation of a solar or stellar corona into the radio images, spectra and polarisation maps that a radio telescope
 would see. For every pixel it follows the radio ray from the observer through the model
 plasma — bending with the refractive index of the plasma where that matters — and solves
 the radiative transfer of the emission along the way.
